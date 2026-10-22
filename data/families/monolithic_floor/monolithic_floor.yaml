@@ -1,0 +1,413 @@
+# Семейство F1: монолитный этаж (стены + перекрытие) в крупнощитовой опалубке.
+# Источник состава: ТТК ЦНИИОМТП 2004 (SRC.TTK_MON_2004) — пункты раздела 2 и график производства работ (разд. 5).
+# schedule_row — номер строки графика ТТК (разд. 5); null — операции нет в графике (контроль, подготовка, ТБ).
+# ttk — пункты ТТК / СП, из которых взята операция.
+
+operations:
+
+  # ==== Подготовка (п. 2.2) ====
+  - id: FLR.AXES
+    name: Разбивка осей стен на перекрытии
+    family: monolithic_floor
+    kind: work
+    requires: [base_slab.ready]
+    produces: [axes.marked]
+    zone: floor
+    schedule_row: null
+    ttk: "п. 2.2"
+  - id: FLR.LEVEL
+    name: Нивелировка поверхности перекрытия
+    family: monolithic_floor
+    kind: work
+    requires: [base_slab.ready]
+    produces: [heights.marked]
+    zone: floor
+    schedule_row: null
+    ttk: "п. 2.2"
+  - id: FLR.LAYOUT
+    name: Разметка положения стен и рисок рабочего положения опалубки по проекту
+    family: monolithic_floor
+    kind: work
+    requires: [axes.marked]
+    produces: [formwork_layout.marked]
+    zone: floor
+    schedule_row: null
+    ttk: "п. 2.2"
+  - id: FLR.BASE_CLEAN
+    name: Очистка основания от грязи и мусора
+    family: monolithic_floor
+    kind: work
+    requires: [base_slab.ready]
+    produces: [base.clean]
+    zone: floor
+    schedule_row: null
+    ttk: "п. 2.2"
+
+  # ==== Опалубка стен, 1-я сторона (пп. 2.7, 2.8) ====
+  - id: WALL.GUIDE_RAIL
+    name: Укладка и выверка маячных реек по контуру стен, нанесение рисок
+    family: monolithic_floor
+    kind: work
+    requires: [heights.marked, formwork_layout.marked, base.clean]
+    produces: [guide_rail.installed]
+    zone: walls
+    schedule_row: null
+    ttk: "п. 2.7"
+  - id: WALL.FORMWORK_SIDE1
+    name: Установка опалубки одной стороны стен на высоту этажа
+    family: monolithic_floor
+    kind: work
+    requires: [guide_rail.installed]
+    produces: [formwork_side1.installed]
+    zone: walls
+    schedule_row: 1
+    ttk: "пп. 2.7, 2.8"
+    note: "В графике (стр. 1) опалубка стен — одна строка; разделение на две стороны — по п. 2.8"
+  - id: WALL.BRACKETS
+    name: Монтаж кронштейнов
+    family: monolithic_floor
+    kind: work
+    requires: [formwork_side1.installed]
+    produces: [brackets.installed]
+    zone: walls
+    schedule_row: 3
+    ttk: "график, стр. 3"
+  - id: WALL.PLATFORM
+    name: Устройство рабочего настила
+    family: monolithic_floor
+    kind: work
+    requires: [brackets.installed]
+    produces: [wall_platform.installed]
+    zone: walls
+    schedule_row: 4
+    ttk: "график, стр. 4"
+  - id: WALL.FORMWORK_CHECK
+    name: Проверка опалубки первой стороны и составление акта приёмки
+    family: monolithic_floor
+    kind: control
+    requires: [formwork_side1.installed]
+    produces: [formwork_wall.checked]
+    zone: walls
+    schedule_row: null
+    ttk: "п. 2.14"
+  - id: WALL.OPENING_FORMERS
+    name: Монтаж проёмообразователей
+    family: monolithic_floor
+    kind: work
+    requires: [formwork_wall.checked]
+    produces: [opening_formers.installed]
+    zone: walls
+    schedule_row: 5
+    ttk: "п. 1.5; график, стр. 5"
+
+  # ==== Арматура стен (пп. 2.14, 2.17–2.20) ====
+  - id: WALL.REINFORCEMENT_CLEAN
+    name: Очистка арматуры от ржавчины
+    family: monolithic_floor
+    kind: work
+    requires: []
+    produces: [reinforcement.cleaned]
+    zone: rebar_yard
+    schedule_row: null
+    ttk: "п. 2.14"
+  - id: WALL.OPENINGS_CLOSE
+    name: Закрытие проёмов в перекрытии щитами или установка временного ограждения
+    family: monolithic_floor
+    kind: safety
+    requires: []
+    produces: [openings.closed]
+    zone: floor
+    schedule_row: null
+    ttk: "п. 2.14"
+  - id: WALL.REINFORCEMENT_MARK
+    name: Разметка мелом мест установки каркасов на опалубке
+    family: monolithic_floor
+    kind: work
+    requires: [formwork_wall.checked, openings.closed]
+    produces: [reinforcement.marked]
+    zone: walls
+    schedule_row: null
+    ttk: "п. 2.17"
+  - id: WALL.FRAME_INSTALL
+    name: Установка арматурных каркасов, сеток и отдельных стержней с фиксаторами
+    family: monolithic_floor
+    kind: work
+    requires: [reinforcement.marked, reinforcement.cleaned, rebar.delivered]
+    produces: [frame.installed]
+    zone: walls
+    schedule_row: 6
+    ttk: "пп. 2.17, 2.18; график, стр. 6–7"
+    note: "Фиксаторы с шагом 1–1,2 м (п. 2.18); отдельные стержни (стр. 7) включены сюда"
+  - id: WALL.FRAME_WELDING
+    name: Сварка вертикальных стыков каркасов
+    family: monolithic_floor
+    kind: work
+    requires: [frame.installed]
+    produces: [frame.welded]
+    zone: walls
+    schedule_row: null
+    ttk: "п. 2.19"
+  - id: WALL.EMBEDS
+    name: Установка закладных деталей
+    family: monolithic_floor
+    kind: work
+    requires: [formwork_wall.checked]
+    produces: [embeds.installed]
+    zone: walls
+    schedule_row: 8
+    ttk: "график, стр. 8"
+  - id: WALL.FRAME_ACCEPT
+    name: Приёмка арматуры и закладных деталей по акту скрытых работ
+    family: monolithic_floor
+    kind: control
+    requires: [frame.welded, embeds.installed]
+    produces: [frame.accepted]
+    zone: walls
+    schedule_row: null
+    ttk: "п. 2.20"
+    note: "Приёмка до закрытия второй стороной — по принципу скрытых работ; в ТТК — перед бетонированием (эксперт)"
+
+  # ==== Опалубка стен, 2-я сторона (п. 2.8) ====
+  - id: WALL.FORMWORK_SIDE2
+    name: Установка опалубки второй стороны стен
+    family: monolithic_floor
+    kind: work
+    requires: [frame.accepted]
+    produces: [formwork_side2.installed]
+    zone: walls
+    schedule_row: 1
+    ttk: "п. 2.8; график, стр. 1"
+  - id: WALL.TIES
+    name: Установка стяжек опалубки
+    family: monolithic_floor
+    kind: work
+    requires: [formwork_side2.installed]
+    produces: [ties.installed]
+    zone: walls
+    schedule_row: 2
+    ttk: "график, стр. 2"
+    note: "Стяжки соединяют обе стороны опалубки — физически возможны только после второй стороны"
+  - id: WALL.FORMWORK_ACCEPT
+    name: Проверка опалубки стен перед бетонированием и составление акта
+    family: monolithic_floor
+    kind: control
+    requires: [ties.installed, wall_platform.installed, opening_formers.installed]
+    produces: [formwork_wall.accepted]
+    zone: walls
+    schedule_row: null
+    ttk: "п. 2.21"
+
+  # ==== Бетонирование стен (пп. 2.21, 2.28; табл. 3) ====
+  - id: WALL.CONCRETE_CHECK
+    name: Входной контроль бетонной смеси (подвижность, осадка конуса)
+    family: monolithic_floor
+    kind: control
+    requires: [wall_concrete.delivered]
+    produces: [wall_concrete.accepted_mix]
+    zone: walls
+    schedule_row: 9
+    ttk: "табл. 3; график, стр. 9"
+    note: "Осадка конуса 1–3 см; отбор проб — ГОСТ 18105"
+  - id: WALL.CONCRETE
+    name: Подача, укладка и уплотнение бетонной смеси в стены
+    family: monolithic_floor
+    kind: work
+    requires: [formwork_wall.accepted, wall_concrete.accepted_mix]
+    produces: [wall_concrete.placed]
+    zone: walls
+    schedule_row: 12
+    ttk: "пп. 2.21, 2.28; график, стр. 10–12"
+    note: "Подача в бункерах краном ИЛИ автобетононасосом (стр. 10–11) — альтернативные способы; участками между проёмами, слоями 30–40 см, перерыв 40 мин – 2 ч (п. 2.28)"
+  - id: WALL.CURING
+    name: Уход за бетоном стен
+    family: monolithic_floor
+    kind: work
+    requires: [wall_concrete.placed]
+    produces: [wall_concrete.cured]
+    zone: walls
+    schedule_row: null
+    ttk: "СП 435 п. 10.2"
+
+  # ==== Прочность и распалубка стен (пп. 2.11, 2.12, 2.30; СП 435 пп. 10.5, 10.13) ====
+  - id: WALL.STRENGTH_LOAD
+    name: Контроль прочности бетона стен для установки на них опалубки перекрытия
+    family: monolithic_floor
+    kind: control
+    requires: [wall_concrete.placed]
+    produces: [wall_concrete.strength_load]
+    zone: walls
+    schedule_row: null
+    ttk: "п. 2.30; СП 435 п. 10.5"
+    note: "ТТК — 15 кгс/см²; СП 435 — 2,5 МПа (приоритет у СП)"
+  - id: WALL.STRENGTH_STRIP
+    name: Контроль распалубочной прочности стен и разрешение производителя работ
+    family: monolithic_floor
+    kind: control
+    requires: [wall_concrete.placed]
+    produces: [wall_concrete.strength_strip]
+    zone: walls
+    schedule_row: null
+    ttk: "п. 2.11; СП 435 п. 10.13"
+  - id: WALL.STRIP
+    name: Демонтаж опалубки стен (отрыв домкратами)
+    family: monolithic_floor
+    kind: work
+    requires: [wall_concrete.strength_strip]
+    produces: [wall_formwork.removed]
+    zone: walls
+    schedule_row: 13
+    ttk: "пп. 2.11, 2.12; график, стр. 13"
+  - id: WALL.PLATFORM_REMOVE
+    name: Снятие рабочего настила и демонтаж проёмообразователей
+    family: monolithic_floor
+    kind: work
+    requires: [wall_concrete.strength_strip]
+    produces: [wall_platform.removed]
+    zone: walls
+    schedule_row: 14
+    ttk: "график, стр. 14"
+
+  # ==== Опалубка перекрытия (п. 2.9; график, стр. 15–16) ====
+  - id: SLAB.FORM_SUPPORTS
+    name: Установка рам и стоек с домкратами
+    family: monolithic_floor
+    kind: work
+    requires: [wall_platform.removed, wall_concrete.strength_load, wall_formwork.removed]
+    produces: [slab_supports.installed]
+    zone: slab
+    schedule_row: 15
+    ttk: "п. 2.9; график, стр. 15"
+  - id: SLAB.FORM_DECK
+    name: Укладка продольных и поперечных балок, палубы; выверка отметок домкратами
+    family: monolithic_floor
+    kind: work
+    requires: [slab_supports.installed]
+    produces: [slab_form.installed]
+    zone: slab
+    schedule_row: 16
+    ttk: "п. 2.9; график, стр. 16"
+  - id: SLAB.FORM_CHECK
+    name: Проверка опалубки перекрытия и составление акта приёмки
+    family: monolithic_floor
+    kind: control
+    requires: [slab_form.installed]
+    produces: [slab_form.checked]
+    zone: slab
+    schedule_row: null
+    ttk: "п. 2.14; СП 435 п. 8.4"
+
+  # ==== Армирование перекрытия (пп. 2.18, 2.20; рис. 13–15) ====
+  - id: SLAB.REBAR_INSTALL
+    name: Укладка нижних и верхних арматурных сеток перекрытия с фиксаторами
+    family: monolithic_floor
+    kind: work
+    requires: [slab_form.checked, reinforcement.cleaned, rebar.delivered]
+    produces: [slab_rebar.installed]
+    zone: slab
+    schedule_row: 17
+    ttk: "п. 2.18; рис. 13–15; график, стр. 17"
+    note: "Фиксаторы с шагом 0,8–1,0 м (п. 2.18)"
+  - id: SLAB.REBAR_ACCEPT
+    name: Приёмка арматуры перекрытия по акту скрытых работ
+    family: monolithic_floor
+    kind: control
+    requires: [slab_rebar.installed]
+    produces: [slab_rebar.accepted]
+    zone: slab
+    schedule_row: null
+    ttk: "пп. 2.20, 2.21"
+
+  # ==== Бетонирование перекрытия (пп. 2.21, 2.24, 2.29; табл. 3) ====
+  - id: SLAB.CONCRETE_CHECK
+    name: Входной контроль бетонной смеси для перекрытия
+    family: monolithic_floor
+    kind: control
+    requires: [slab_concrete.delivered]
+    produces: [slab_concrete.accepted_mix]
+    zone: slab
+    schedule_row: 18
+    ttk: "табл. 3; график, стр. 18"
+  - id: SLAB.CONCRETE
+    name: Подача, укладка и уплотнение бетонной смеси в перекрытие
+    family: monolithic_floor
+    kind: work
+    requires: [slab_rebar.accepted, slab_concrete.accepted_mix]
+    produces: [slab_concrete.placed]
+    zone: slab
+    schedule_row: 21
+    ttk: "пп. 2.21, 2.24, 2.29; график, стр. 19–21"
+    note: "Подача бункерами ИЛИ насосом (стр. 19–20); уплотнение глубинными и поверхностными вибраторами (п. 2.29)"
+  - id: SLAB.CURING
+    name: Уход за бетоном перекрытия
+    family: monolithic_floor
+    kind: work
+    requires: [slab_concrete.placed]
+    produces: [slab_concrete.cured]
+    zone: slab
+    schedule_row: null
+    ttk: "СП 435 п. 10.2"
+
+  # ==== Прочность и распалубка перекрытия (пп. 2.11, 2.12, 2.30; СП 435 пп. 10.5, 10.13) ====
+  - id: SLAB.STRENGTH_LOAD
+    name: Контроль прочности бетона перекрытия для работ следующего этажа
+    family: monolithic_floor
+    kind: control
+    requires: [slab_concrete.placed]
+    produces: [slab_concrete.strength_load]
+    zone: slab
+    schedule_row: null
+    ttk: "п. 2.30; СП 435 п. 10.5"
+  - id: SLAB.STRENGTH_STRIP
+    name: Контроль распалубочной прочности перекрытия и разрешение производителя работ
+    family: monolithic_floor
+    kind: control
+    requires: [slab_concrete.placed]
+    produces: [slab_concrete.strength_strip]
+    zone: slab
+    schedule_row: null
+    ttk: "п. 2.11; СП 435 п. 10.13, табл. 10.1"
+    note: "Толщина перекрытия 160 мм (п. 1.4); % прочности — по пролёту и нагрузке"
+  - id: SLAB.STRIP
+    name: Демонтаж опалубки перекрытия (отрыв домкратами)
+    family: monolithic_floor
+    kind: work
+    requires: [slab_concrete.strength_strip]
+    produces: [slab_formwork.removed]
+    zone: slab
+    schedule_row: 22
+    ttk: "пп. 2.11, 2.12; график, стр. 22"
+  - id: SLAB.SUPPORTS_STRIP
+    name: Демонтаж рам и стоек
+    family: monolithic_floor
+    kind: work
+    requires: [slab_formwork.removed]
+    produces: [slab_supports.removed]
+    zone: slab
+    schedule_row: 23
+    ttk: "график, стр. 23"
+
+external_inputs:
+  - id: EXT.BASE_SLAB_READY
+    name: Перекрытие нижнего этажа готово к работам (прочность ≥ 2,5 МПа)
+    produces: [base_slab.ready]
+    cause: interface
+  - id: EXT.REBAR_DELIVERED
+    name: Арматурные каркасы, сетки, стержни и закладные доставлены на площадку
+    produces: [rebar.delivered]
+    cause: supply
+    ttk: "п. 2.15"
+  - id: EXT.WALL_CONCRETE_DELIVERED
+    name: Доставка бетонной смеси для стен
+    produces: [wall_concrete.delivered]
+    cause: supply
+  - id: EXT.SLAB_CONCRETE_DELIVERED
+    name: Доставка бетонной смеси для перекрытия
+    produces: [slab_concrete.delivered]
+    cause: supply
+
+external_outputs:
+  - id: OUT.NEXT_FLOOR_READY
+    name: Перекрытие готово к работам следующего этажа
+    requires: [slab_concrete.strength_load]
+
+resources_note: "График, стр. 24 «Работа крана» — ресурс (кран), не операция."

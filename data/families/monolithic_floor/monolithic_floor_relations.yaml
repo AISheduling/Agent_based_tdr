@@ -1,0 +1,653 @@
+ёfamily: monolithic_floor
+relations:
+- id: F1-R01
+  from: FLR.AXES
+  to: FLR.LAYOUT
+  type: mandatory
+  basis:
+  - result_consumption
+  sources:
+  - source: SRC.TTK_MON_2004
+    locator: п. 2.2
+    note: разметку стен ведут от осей; порядок — из перечня п. 2.2
+  status: source_checked
+- id: F1-R02
+  from: FLR.LEVEL
+  to: WALL.GUIDE_RAIL
+  type: mandatory
+  basis:
+  - object_state
+  - tech_card
+  sources:
+  - source: SRC.TTK_MON_2004
+    locator: пп. 2.2, 2.7
+    note: п. 2.2 требует выполнить нивелировку до начала монтажа опалубки, а п. 2.7 начинает монтаж с укладки реек
+  status: source_checked
+- id: F1-R03
+  from: FLR.LAYOUT
+  to: WALL.GUIDE_RAIL
+  type: mandatory
+  basis:
+  - object_state
+  - tech_card
+  sources:
+  - source: SRC.TTK_MON_2004
+    locator: пп. 2.2, 2.7
+    note: до монтажа опалубки — разметка; монтаж начинают с укладки реек по контуру
+  status: source_checked
+- id: F1-R04
+  from: FLR.BASE_CLEAN
+  to: WALL.GUIDE_RAIL
+  type: mandatory
+  basis:
+  - object_state
+  - tech_card
+  sources:
+  - source: SRC.TTK_MON_2004
+    locator: пп. 2.2, 2.7
+    note: до монтажа опалубки основание очищено
+  status: source_checked
+- id: F1-R05
+  from: WALL.GUIDE_RAIL
+  to: WALL.FORMWORK_SIDE1
+  type: mandatory
+  basis:
+  - result_consumption
+  - tech_card
+  sources:
+  - source: SRC.TTK_MON_2004
+    locator: п. 2.7
+    note: после выверки реек и нанесения рисок монтируют щиты
+  status: source_checked
+- id: F1-R06
+  from: WALL.FORMWORK_SIDE1
+  to: WALL.BRACKETS
+  type: mandatory
+  basis:
+  - result_consumption
+  sources:
+  - source: SRC.TTK_MON_2004
+    locator: график, стр. 1→3
+    note: кронштейны крепят к установленным щитам
+  status: source_checked
+- id: F1-R07
+  from: WALL.BRACKETS
+  to: WALL.PLATFORM
+  type: mandatory
+  basis:
+  - result_consumption
+  sources:
+  - source: SRC.TTK_MON_2004
+    locator: график, стр. 3→4
+    note: настил укладывают на кронштейны
+  status: source_checked
+- id: F1-R08
+  from: WALL.FORMWORK_SIDE1
+  to: WALL.FORMWORK_CHECK
+  type: mandatory
+  basis:
+  - result_consumption
+  sources:
+  - source: SRC.TTK_MON_2004
+    locator: п. 2.14
+    note: перед монтажом арматуры — проверка опалубки и акт
+  status: source_checked
+- id: F1-R09
+  from: WALL.FORMWORK_CHECK
+  to: WALL.OPENING_FORMERS
+  type: mandatory
+  basis:
+  - object_state
+  sources:
+  - source: SRC.EXPERT
+    locator: null
+    note: 'решение: проёмообразователи после приёмки; в ТТК порядок не задан (график: стр. 1→5); их положение проверяется только перед бетонированием (п. 2.21)'
+  status: expert_needed
+- id: F1-R10
+  from: WALL.FORMWORK_CHECK
+  to: WALL.REINFORCEMENT_MARK
+  type: mandatory
+  basis:
+  - object_state
+  sources:
+  - source: SRC.EXPERT
+    locator: null
+    note: разметку ведут от проектного положения; при смещении опалубки она будет неверной; в ТТК порядок не задан (пп. 2.14, 2.17)
+  status: expert_needed
+- id: F1-R11
+  from: WALL.OPENINGS_CLOSE
+  to: WALL.REINFORCEMENT_MARK
+  type: mandatory
+  basis:
+  - tech_card
+  sources:
+  - source: SRC.TTK_MON_2004
+    locator: п. 2.14
+    note: перед монтажом арматуры закрыть проёмы
+  status: source_checked
+- id: F1-R12
+  from: WALL.REINFORCEMENT_MARK
+  to: WALL.FRAME_INSTALL
+  type: mandatory
+  basis:
+  - object_state
+  - tech_card
+  sources:
+  - source: SRC.TTK_MON_2004
+    locator: п. 2.17
+    note: на опалубке до установки каркасов размечают места их расположения
+  status: source_checked
+- id: F1-R13
+  from: WALL.REINFORCEMENT_CLEAN
+  to: WALL.FRAME_INSTALL
+  type: mandatory
+  basis:
+  - object_state
+  - tech_card
+  sources:
+  - source: SRC.TTK_MON_2004
+    locator: п. 2.14
+    note: перед монтажом арматуры — очистка от ржавчины
+  status: source_checked
+- id: F1-R14
+  from: WALL.OPENING_FORMERS
+  to: WALL.FRAME_INSTALL
+  type: preferred
+  basis:
+  - object_state
+  sources:
+  - source: SRC.TTK_MON_2004
+    locator: график, стр. 5→6
+    note: каркасы ставят с учётом проёмов; в ТТК порядок не задан (график стр. 5→6)
+  status: expert_needed
+- id: F1-R15
+  from: WALL.FRAME_INSTALL
+  to: WALL.FRAME_WELDING
+  type: mandatory
+  basis:
+  - result_consumption
+  sources:
+  - source: SRC.TTK_MON_2004
+    locator: п. 2.19
+    note: стыковка каркасов по вертикали сваркой
+  status: source_checked
+- id: F1-R16
+  from: WALL.FORMWORK_CHECK
+  to: WALL.EMBEDS
+  type: mandatory
+  basis:
+  - tech_card
+  sources:
+  - source: SRC.TTK_MON_2004
+    locator: п. 2.14; график, стр. 8
+    note: перед монтажом арматуры — проверка опалубки и акт; закладные устанавливаются в той же стадии (спецификация арматурных изделий, рис. 12) — по аналогии
+  status: needs_check
+- id: F1-R17
+  from: WALL.FRAME_WELDING
+  to: WALL.FRAME_ACCEPT
+  type: mandatory
+  basis:
+  - result_consumption
+  sources:
+  - source: SRC.TTK_MON_2004
+    locator: п. 2.20
+    note: приёмка арматуры по акту на скрытые работы
+  status: source_checked
+- id: F1-R18
+  from: WALL.EMBEDS
+  to: WALL.FRAME_ACCEPT
+  type: mandatory
+  basis:
+  - result_consumption
+  sources:
+  - source: SRC.TTK_MON_2004
+    locator: пп. 2.21
+    note: закладные включены в приёмку скрытых работ
+  status: source_checked
+- id: F1-R19
+  from: WALL.FRAME_ACCEPT
+  to: WALL.FORMWORK_SIDE2
+  type: mandatory
+  basis:
+  - object_state
+  sources:
+  - source: SRC.TTK_MON_2004
+    locator: пп. 2.8, 2.20
+    note: в ТТК приёмка арматуры — перед бетонированием; до закрытия второй стороной — по принципу скрытых работ
+  status: expert_needed
+- id: F1-R20
+  from: WALL.FORMWORK_SIDE2
+  to: WALL.TIES
+  type: mandatory
+  basis:
+  - result_consumption
+  sources:
+  - source: SRC.TTK_MON_2004
+    locator: график, стр. 1→2
+    note: стяжки соединяют обе стороны опалубки
+  status: source_checked
+- id: F1-R21
+  from: WALL.TIES
+  to: WALL.FORMWORK_ACCEPT
+  type: mandatory
+  basis:
+  - result_consumption
+  sources:
+  - source: SRC.TTK_MON_2004
+    locator: п. 2.21
+    note: проверка опалубки перед бетонированием включает стяжки 
+  status: source_checked
+- id: F1-R22
+  from: WALL.PLATFORM
+  to: WALL.FORMWORK_ACCEPT
+  type: mandatory
+  basis:
+  - zone_access
+  sources:
+  - source: SRC.TTK_MON_2004
+    locator: график, стр. 4; п. 2.21
+    note: бетонируют с рабочего настила
+  status: source_checked
+- id: F1-R23
+  from: WALL.FORMWORK_ACCEPT
+  to: WALL.CONCRETE
+  type: mandatory
+  basis:
+  - object_state
+  - tech_card
+  sources:
+  - source: SRC.TTK_MON_2004
+    locator: п. 2.21
+    note: до начала укладки бетонной смеси должны быть выполнены…
+  - source: SRC.SP435
+    locator: п. 5.6
+  status: source_checked
+- id: F1-R24
+  from: WALL.CONCRETE_CHECK
+  to: WALL.CONCRETE
+  type: mandatory
+  basis:
+  - object_state
+  sources:
+  - source: SRC.TTK_MON_2004
+    locator: табл. 3
+    note: подвижность смеси проверяется до бетонирования
+  status: source_checked
+- id: F1-R25
+  from: WALL.CONCRETE
+  to: WALL.CURING
+  type: mandatory
+  basis:
+  - result_consumption
+  sources:
+  - source: SRC.SP435
+    locator: п. 10.2
+    note: уход сразу после бетонирования
+  status: source_checked
+- id: F1-R26
+  from: WALL.CONCRETE
+  to: WALL.STRENGTH_LOAD
+  type: mandatory
+  basis:
+  - result_consumption
+  sources:
+  - source: SRC.SP435
+    locator: п. 10.5
+  status: source_checked
+- id: F1-R27
+  from: WALL.CONCRETE
+  to: WALL.STRENGTH_STRIP
+  type: mandatory
+  basis:
+  - result_consumption
+  sources:
+  - source: SRC.SP435
+    locator: п. 10.13
+  status: source_checked
+- id: F1-R28
+  from: WALL.STRENGTH_STRIP
+  to: WALL.STRIP
+  type: mandatory
+  basis:
+  - object_state
+  sources:
+  - source: SRC.TTK_MON_2004
+    locator: п. 2.11
+    note: демонтаж — после требуемой прочности и с разрешения производителя работ
+  - source: SRC.SP435
+    locator: п. 10.13
+    note: значение для стен уточнить
+  status: source_checked
+- id: F1-R29
+  from: WALL.STRENGTH_STRIP
+  to: WALL.PLATFORM_REMOVE
+  type: mandatory
+  basis:
+  - object_state
+  sources:
+  - source: SRC.TTK_MON_2004
+    locator:  п. 2.11; график, стр. 14
+    note: проёмообразователи — элементы опалубки (рис. 7), п. 2.11 применён по аналогии
+  - source: SRC.SP435
+    locator: п. 10.13
+    note: 
+  status: source_checked
+- id: F1-R30
+  from: WALL.STRIP
+  to: SLAB.FORM_SUPPORTS
+  type: mandatory
+  basis:
+  - object_state
+  sources:
+  - source: SRC.TTK_MON_2004
+    locator: график, стр. 13→15
+    note: стр. 13 заканчивается на отметке 38, стр. 15 начинается на 38
+  status: source_checked
+- id: F1-R31
+  from: WALL.PLATFORM_REMOVE
+  to: SLAB.FORM_SUPPORTS
+  type: mandatory
+  basis:
+  - zone_access
+  sources:
+  - source: SRC.TTK_MON_2004
+    locator: график, стр. 14→15
+    note: снятие настила и проёмообразователей  до установки рам перекрытия
+  status: source_checked
+- id: F1-R32
+  from: WALL.STRENGTH_LOAD
+  to: SLAB.FORM_SUPPORTS
+  type: mandatory
+  basis:
+  - object_state
+  sources:
+  - source: SRC.TTK_MON_2004
+    locator: п. 2.30
+    note: установка опалубки на бетон — после прочности 15 кгс/см²
+  - source: SRC.SP435
+    locator: п. 10.5
+    note: 2,5 МПа — приоритет у СП
+  status: source_checked
+- id: F1-R33
+  from: SLAB.FORM_SUPPORTS
+  to: SLAB.FORM_DECK
+  type: mandatory
+  basis:
+  - result_consumption
+  sources:
+  - source: SRC.TTK_MON_2004
+    locator: п. 2.9; график, стр. 15→16
+    note: балки и палуба опираются на рамы
+  status: source_checked
+- id: F1-R34
+  from: SLAB.FORM_DECK
+  to: SLAB.FORM_CHECK
+  type: mandatory
+  basis:
+  - result_consumption
+  sources:
+  - source: SRC.SP435
+    locator: п. 8.4
+    note: опалубку принимают по акту
+  status: source_checked
+- id: F1-R35
+  from: SLAB.FORM_CHECK
+  to: SLAB.REBAR_INSTALL
+  type: mandatory
+  basis:
+  - object_state
+  - tech_card
+  sources:
+  - source: SRC.TTK_MON_2004
+    locator: п. 2.14
+    note: перед монтажом арматуры — проверка опалубки и акт
+  status: source_checked
+- id: F1-R36
+  from: WALL.REINFORCEMENT_CLEAN
+  to: SLAB.REBAR_INSTALL
+  type: mandatory
+  basis:
+  - object_state
+  - tech_card
+  sources:
+  - source: SRC.TTK_MON_2004
+    locator: п. 2.14
+    note: очистка арматуры от ржавчины
+  status: source_checked
+- id: F1-R37
+  from: SLAB.REBAR_INSTALL
+  to: SLAB.REBAR_ACCEPT
+  type: mandatory
+  basis:
+  - result_consumption
+  sources:
+  - source: SRC.TTK_MON_2004
+    locator: п. 2.20
+  status: source_checked
+- id: F1-R38
+  from: SLAB.REBAR_ACCEPT
+  to: SLAB.CONCRETE
+  type: mandatory
+  basis:
+  - object_state
+  - tech_card
+  sources:
+  - source: SRC.TTK_MON_2004
+    locator: п. 2.21
+  - source: SRC.SP435
+    locator: п. 5.6
+  status: source_checked
+- id: F1-R39
+  from: SLAB.CONCRETE_CHECK
+  to: SLAB.CONCRETE
+  type: mandatory
+  basis:
+  - object_state
+  sources:
+  - source: SRC.TTK_MON_2004
+    locator: табл. 3
+  status: source_checked
+- id: F1-R40
+  from: SLAB.CONCRETE
+  to: SLAB.CURING
+  type: mandatory
+  basis:
+  - result_consumption
+  sources:
+  - source: SRC.SP435
+    locator: п. 10.2
+  status: source_checked
+- id: F1-R41
+  from: SLAB.CONCRETE
+  to: SLAB.STRENGTH_LOAD
+  type: mandatory
+  basis:
+  - result_consumption
+  sources:
+  - source: SRC.SP435
+    locator: п. 10.5
+  status: source_checked
+- id: F1-R42
+  from: SLAB.CONCRETE
+  to: SLAB.STRENGTH_STRIP
+  type: mandatory
+  basis:
+  - result_consumption
+  sources:
+  - source: SRC.SP435
+    locator: п. 10.13
+  status: source_checked
+- id: F1-R43
+  from: SLAB.STRENGTH_STRIP
+  to: SLAB.STRIP
+  type: mandatory
+  basis:
+  - object_state
+  sources:
+  - source: SRC.TTK_MON_2004
+    locator: п. 2.11
+  - source: SRC.SP435
+    locator: п. 10.13, табл. 10.1
+  status: source_checked
+- id: F1-R44
+  from: SLAB.STRIP
+  to: SLAB.SUPPORTS_STRIP
+  type: mandatory
+  basis:
+  - result_consumption
+  sources:
+  - source: SRC.TTK_MON_2004
+    locator: график, стр. 22→23
+    note: сначала палуба и балки, затем рамы
+  status: source_checked
+- id: F1-R45
+  from: WALL.OPENING_FORMERS
+  to: WALL.FORMWORK_ACCEPT
+  type: mandatory
+  basis:
+  - object_state
+  - tech_card
+  sources:
+  - source: SRC.TTK_MON_2004
+    locator: п. 2.21
+    note: перед бетонированием проверяют положение проёмообразователей
+  status: source_checked
+interface_relations:
+- id: F1-X01
+  from: EXT.BASE_SLAB_READY
+  to: FLR.AXES
+  cause: interface
+  basis:
+  - object_state
+  sources:
+  - source: SRC.SP435
+    locator: п. 10.5
+    note: работы на перекрытии — после 2,5 МПа
+  status: source_checked
+- id: F1-X02
+  from: EXT.BASE_SLAB_READY
+  to: FLR.LEVEL
+  cause: interface
+  basis:
+  - object_state
+  sources:
+  - source: SRC.SP435
+    locator: п. 10.5
+  status: source_checked
+- id: F1-X03
+  from: EXT.BASE_SLAB_READY
+  to: FLR.BASE_CLEAN
+  cause: interface
+  basis:
+  - object_state
+  sources:
+  - source: SRC.SP435
+    locator: п. 10.5
+  status: source_checked
+- id: F1-X04
+  from: EXT.REBAR_DELIVERED
+  to: WALL.FRAME_INSTALL
+  cause: supply
+  basis: []
+  sources:
+  - source: SRC.TTK_MON_2004
+    locator: п. 2.15
+  status: source_checked
+- id: F1-X05
+  from: EXT.WALL_CONCRETE_DELIVERED
+  to: WALL.CONCRETE_CHECK
+  cause: supply
+  basis: []
+  sources:
+  - source: SRC.TTK_MON_2004
+    locator: график, стр. 9
+  status: source_checked
+- id: F1-X06
+  from: EXT.REBAR_DELIVERED
+  to: SLAB.REBAR_INSTALL
+  cause: supply
+  basis: []
+  sources:
+  - source: SRC.TTK_MON_2004
+    locator: п. 2.15
+  status: source_checked
+- id: F1-X07
+  from: EXT.SLAB_CONCRETE_DELIVERED
+  to: SLAB.CONCRETE_CHECK
+  cause: supply
+  basis: []
+  sources:
+  - source: SRC.TTK_MON_2004
+    locator: график, стр. 18
+  status: source_checked
+- id: F1-X08
+  from: SLAB.STRENGTH_LOAD
+  to: OUT.NEXT_FLOOR_READY
+  cause: interface
+  basis:
+  - object_state
+  sources:
+  - source: SRC.SP435
+    locator: п. 10.5
+  status: source_checked
+non_relations:
+- pair:
+  - FLR.AXES
+  - FLR.LEVEL
+  reason: обе выполняет геодезист; порядок — его загрузка
+- pair:
+  - FLR.LAYOUT
+  - FLR.BASE_CLEAN
+  reason: разные исполнители, обе нужны только рейкам
+- pair:
+  - WALL.REINFORCEMENT_CLEAN
+  - WALL.FORMWORK_SIDE1
+  reason: очистка материала не зависит от опалубки
+- pair:
+  - WALL.REINFORCEMENT_CLEAN
+  - WALL.OPENINGS_CLOSE
+  reason: мера ТБ и подготовка материала независимы
+- pair:
+  - WALL.BRACKETS
+  - WALL.FORMWORK_CHECK
+  reason: параллельные работы после первой стороны
+- pair:
+  - WALL.PLATFORM
+  - WALL.FRAME_INSTALL
+  reason: в графике настил (стр. 4) раньше каркасов (стр. 6), но технологической связи нет
+- pair:
+  - WALL.FRAME_WELDING
+  - WALL.EMBEDS
+  reason: разные исполнители (сварщик и монтажники); порядок — очередь
+- pair:
+  - WALL.EMBEDS
+  - WALL.CONCRETE_CHECK
+  reason: в графике приём бетона (стр. 9) после закладных (стр. 8) — это поставка, не технология
+- pair:
+  - WALL.STRENGTH_LOAD
+  - WALL.STRIP
+  reason: разные условия прочности; одно не ждёт другого
+- pair:
+  - WALL.CURING
+  - SLAB.FORM_SUPPORTS
+  reason: уход за стенами продолжается во время монтажа опалубки перекрытия
+- pair:
+  - SLAB.CONCRETE_CHECK
+  - SLAB.REBAR_ACCEPT
+  reason: приём бетона не ждёт приёмки арматуры; ждёт только укладка
+- pair:
+  - SLAB.STRENGTH_LOAD
+  - SLAB.STRIP
+  reason: разные условия прочности
+- pair:
+  - WALL.FRAME_INSTALL
+  - WALL.EMBEDS
+  reason: в графике стр. 6, 7 и 8 начинаются одновременно (дни ~4–17)
+- pair:
+  - WALL.CURING
+  - WALL.STRIP
+  reason: боковые элементы опалубки снимают при прочности, обеспечивающей сохранность поверхности и кромок (СП 435 п. 10.13, числа нет), а защита открытых поверхностей длится до 70 % проектной прочности (п. 10.6) — уход продолжается после распалубки стен
+- pair:
+  - SLAB.CURING
+  - SLAB.STRIP
+  reason: распалубка перекрытия — по табл. 10.1 (не менее 70 % проектной прочности), защита открытых поверхностей — до 70 % (п. 10.6); оба срока определяются набором прочности и контролируются через SLAB.STRENGTH_STRIP, прямого предшествования нет
