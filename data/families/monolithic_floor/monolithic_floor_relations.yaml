@@ -1,4 +1,4 @@
-ёfamily: monolithic_floor
+family: monolithic_floor
 relations:
 - id: F1-R01
   from: FLR.AXES
