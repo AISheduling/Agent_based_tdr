@@ -1,5 +1,5 @@
 # One target for the agent hook, pre-commit and CI: `make check`.
-.PHONY: check lint types test fmt run mlflow overlay rename
+.PHONY: check lint types test fmt run mlflow overlay rename verify
 
 check: lint types test
 
@@ -16,6 +16,9 @@ test:
 fmt:
 	uv run ruff format .
 	uv run ruff check --fix .
+
+verify:
+	uv run python -m nir_project.verifier family data/families/*
 
 run:
 	uv run python -m nir_project --config configs/smoke.yaml
