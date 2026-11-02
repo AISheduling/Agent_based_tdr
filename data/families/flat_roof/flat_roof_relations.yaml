@@ -135,10 +135,10 @@ relations:
   basis:
   - object_state
   sources:
-  - source: SRC.TTK_ROOF_2001
-    locator: п. 4.1.1
-    note: согласно п 4.1.1 бортики делаются после установки теплоизоляции
-  status: source_checked
+  - source: SRC.EXPERT
+    locator: null
+    note: основание бортиков — принятая теплоизоляция; в ТТК «Филизол» порядок не задан (п. 4.1.1 — калькуляция, не требование к порядку)
+  status: expert_needed
 - id: F2-R12
   from: ROOF.PARAPET_PLASTER
   to: ROOF.UPSTANDS

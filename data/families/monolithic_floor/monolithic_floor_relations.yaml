@@ -337,12 +337,15 @@ relations:
   to: SLAB.FORM_SUPPORTS
   type: mandatory
   basis:
-  - object_state
+  - zone_access
   sources:
   - source: SRC.TTK_MON_2004
     locator: график, стр. 13→15
-    note: стр. 13 заканчивается на отметке 38, стр. 15 начинается на 38
-  status: source_checked
+    note: порядок строк графика; причина в ТТК не названа (пп. 2.9, 2.11, 2.12 порядок не задают)
+  - source: SRC.EXPERT
+    locator: null
+    note: щиты стен стоят в зоне установки рам и стоек перекрытия; рамы ставят после их снятия
+  status: expert_needed
 - id: F1-R31
   from: WALL.PLATFORM_REMOVE
   to: SLAB.FORM_SUPPORTS

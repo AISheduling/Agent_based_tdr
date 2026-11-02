@@ -170,7 +170,7 @@ operations:
     name: Устройство деформационного шва (минвата на компенсатор, выкружка из оцинковки, стеклоткань и Филизол насухо)
     family: flat_roof
     kind: work
-    requires: [ej_curbs.done]                    # было: [roof_base.primed]
+    requires: [ej_curbs.done]
     produces: [expansion_joint.done]
     zone: roof
     ttk: "п. 2.29; рис. узла деформационного шва, поз. 6–10"
