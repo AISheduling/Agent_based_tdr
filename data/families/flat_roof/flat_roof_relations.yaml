@@ -1,0 +1,453 @@
+family: flat_roof
+relations:
+- id: F2-R01
+  from: ROOF.PREP_ACCEPT
+  to: ROOF.BASE_CLEAN
+  type: mandatory
+  basis:
+  - object_state
+  - tech_card
+  sources:
+  - source: SRC.TTK_ROOF_2001
+    locator: п. 2.1
+    note: до начала кровли должны быть выполнены и приняты СМР
+  - source: SRC.SP71
+    locator: п. 5.1.3
+  status: source_checked
+- id: F2-R02
+  from: ROOF.BASE_CLEAN
+  to: ROOF.PRIMER_VB
+  type: conditional
+  condition: bitumen_vapor_barrier
+  basis:
+  - object_state
+  sources:
+  - source: SRC.SP71
+    locator: п. 5.1.13
+    note: основание обеспыливают; под битумную пароизоляцию — праймер
+  status: source_checked
+- id: F2-R03
+  from: ROOF.BASE_CLEAN
+  to: ROOF.VAPOR
+  type: mandatory
+  basis:
+  - object_state
+  sources:
+  - source: SRC.TTK_ROOF_2001
+    locator: п. 2.11
+    note: основание перед изоляцией сухое, обеспыленное, без уступов
+  - source: SRC.SP71
+    locator: п. 5.1.5
+  status: source_checked
+- id: F2-R04
+  from: ROOF.PARAPET_PLASTER
+  to: ROOF.VAPOR
+  type: mandatory
+  basis:
+  - object_state
+  - tech_card
+  sources:
+  - source: SRC.SP71
+    locator: п. 5.1.3
+    note: до начала изоляционных работ оштукатурены участки вертикальных поверхностей ≥ 300 мм
+  status: source_checked
+- id: F2-R05
+  from: ROOF.PRIMER_VB
+  to: ROOF.VAPOR
+  type: conditional
+  condition: bitumen_vapor_barrier
+  lag: до высыхания праймера (проверка тампоном)
+  basis:
+  - result_consumption
+  sources:
+  - source: SRC.SP71
+    locator: пп. 5.1.13, 5.1.16
+    note: пароизоляция — по высохшему праймеру
+  status: source_checked
+- id: F2-R06
+  from: ROOF.VAPOR
+  to: ROOF.INSUL
+  type: mandatory
+  basis:
+  - result_consumption
+  sources:
+  - source: SRC.TTK_ROOF_2001
+    locator: п. 2.8
+    note: утеплитель укладывают на пароизоляцию; по п. 2.8 работы совмещают «на себя» — в FS-модели упрощено до FS
+  - source: SRC.SP71
+    locator: пп. 5.2.1, 5.3.1
+  status: source_checked
+- id: F2-R07
+  from: ROOF.LEVEL
+  to: ROOF.INSUL
+  type: mandatory
+  basis:
+  - object_state
+  - tech_card
+  sources:
+  - source: SRC.TTK_ROOF_2001
+    locator: п. 2.7
+    note: перед теплоизоляцией нивелируют плиты и ставят маяки
+  status: source_checked
+- id: F2-R08
+  from: ROOF.INSUL
+  to: ROOF.INSUL_ACCEPT
+  type: mandatory
+  basis:
+  - result_consumption
+  sources:
+  - source: SRC.TTK_ROOF_2001
+    locator: п. 2.11; табл. 5
+    note: качество теплоизоляции фиксируют в актах скрытых работ; влажность ≤ 10 %
+  status: source_checked
+- id: F2-R09
+  from: ROOF.INSUL_ACCEPT
+  to: ROOF.SCREED
+  type: conditional
+  condition: screed
+  basis:
+  - object_state
+  - tech_card
+  sources:
+  - source: SRC.TTK_ROOF_2001
+    locator: п. 2.1
+    note: 'порядок слоёв: пароизоляция, теплоизоляция, стяжка'
+  - source: SRC.SP71
+    locator: пп. 4.6, 5.3.22
+    note: скрывающие работы — после акта; стяжка по утеплителю
+  status: source_checked
+- id: F2-R10
+  from: ROOF.SCREED
+  to: ROOF.SCREED_READY
+  type: conditional
+  condition: screed
+  basis:
+  - result_consumption
+  sources:
+  - source: SRC.TTK_ROOF_2001
+    locator: табл. 5
+    note: прочность и влажность стяжки
+  status: source_checked
+- id: F2-R11
+  from: ROOF.INSUL_ACCEPT
+  to: ROOF.UPSTANDS
+  type: mandatory
+  basis:
+  - object_state
+  sources:
+  - source: SRC.TTK_ROOF_2001
+    locator: п. 4.1.1
+    note: согласно п 4.1.1 бортики делаются после установки теплоизоляции
+  status: source_checked
+- id: F2-R12
+  from: ROOF.PARAPET_PLASTER
+  to: ROOF.UPSTANDS
+  type: mandatory
+  basis:
+  - object_state
+  sources:
+  - source: SRC.TTK_ROOF_2001
+    locator: п. 2.13
+    note: бортики примыкают к оштукатуренным стенам
+  status: source_checked
+- id: F2-R13
+  from: ROOF.INSUL_ACCEPT
+  to: ROOF.BASE_CHECK
+  type: mandatory
+  basis:
+  - object_state
+  sources:
+  - source: SRC.TTK_ROOF_2001
+    locator: п. 2.1
+    note: проверяют слои теплоизоляции
+  status: source_checked
+- id: F2-R14
+  from: ROOF.UPSTANDS
+  to: ROOF.BASE_CHECK
+  type: mandatory
+  basis:
+  - object_state
+  sources:
+  - source: SRC.TTK_ROOF_2001
+    locator: пп. 2.1, 2.13
+    note: бортики — часть основания под ковёр
+  status: source_checked
+- id: F2-R15
+  from: ROOF.SCREED_READY
+  to: ROOF.BASE_CHECK
+  type: conditional
+  condition: screed
+  basis:
+  - object_state
+  sources:
+  - source: SRC.TTK_ROOF_2001
+    locator: табл. 5
+    note: прочность и влажность стяжки — перед наклейкой
+  - source: SRC.SP71
+    locator: п. 5.1.6, табл. 5.1
+  status: source_checked
+- id: F2-R16
+  from: ROOF.BASE_CHECK
+  to: ROOF.PRIMER
+  type: mandatory
+  basis:
+  - object_state
+  - tech_card
+  sources:
+  - source: SRC.TTK_ROOF_2001
+    locator: п. 2.1
+  - source: SRC.SP71
+    locator: п. 5.1.15
+    note: влажность основания перед грунтовкой — по табл. 5.1
+  status: source_checked
+- id: F2-R17
+  from: ROOF.PRIMER
+  to: ROOF.SCREED_JOINTS
+  type: conditional
+  condition: screed
+  basis:
+  - object_state
+  sources:
+  - source: SRC.SP71
+    locator: п. 5.1.14
+    note: герметизация швов производится после огрунтовки
+  status: source_checked
+- id: F2-R18
+  from: ROOF.INSUL_ACCEPT
+  to: ROOF.EJ_CURBS
+  type: conditional
+  condition: expansion_joint
+  basis: [object_state]
+  sources:
+  - {source: SRC.TTK_ROOF_2001, locator: "п. 2.29; рис. узла шва, поз. 11", note: "бортики из лёгкого бетона опираются на утеплитель"}
+  status: source_checked
+- id: F2-R19
+  from: ROOF.SCREED_READY
+  to: ROOF.EJ_CURBS
+  type: conditional
+  condition: screed
+  basis: [object_state]
+  sources:
+  - {source: SRC.TTK_ROOF_2001, locator: "рис. узла шва, поз. 4, 11", note: "бортики — по выравнивающей стяжке"}
+  status: source_checked
+- id: F2-R20
+  from: ROOF.EJ_CURBS
+  to: ROOF.EXPANSION_JOINT
+  type: conditional
+  condition: expansion_joint
+  basis: [result_consumption]
+  sources:
+  - {source: SRC.TTK_ROOF_2001, locator: "п. 2.29; рис. узла шва", note: "минвата, выкружка и слои насухо — между бортиками шва"}
+  status: source_checked
+- id: F2-R21
+  from: ROOF.PRIMER
+  to: ROOF.REINFORCE
+  type: mandatory
+  lag: до высыхания грунтовки (ТТК 1991 — 24 ч)
+  basis:
+  - object_state
+  - tech_card
+  sources:
+  - source: SRC.TTK_ROOF_2001
+    locator: п. 2.1
+    note: просохшее после грунтовки основание готово к кровле
+  - source: SRC.SP71
+    locator: п. 5.1.16
+    note: готовность грунтовки — тампоном
+  - source: SRC.TTK_ROOF_1991
+    locator: разд. 2
+    note: ковёр — через 24 ч после огрунтовки
+  status: source_checked
+- id: F2-R22
+  from: ROOF.REINFORCE
+  to: ROOF.MEMBRANE_L1
+  type: mandatory
+  basis:
+  - tech_card
+  sources:
+  - source: SRC.SP71
+    locator: п. 5.4.13
+    note: до устройства основного ковра на примыканиях укладывается слой усиления
+  status: source_checked
+- id: F2-R23
+  from: ROOF.SCREED_JOINTS
+  to: ROOF.MEMBRANE_L1
+  type: conditional
+  condition: screed
+  basis:
+  - result_consumption
+  sources:
+  - source: SRC.TTK_ROOF_2001
+    locator: п. 2.14
+    note: по швам укладывают полоски Филизола — под основной ковёр
+  status: source_checked
+- id: F2-R24
+  from: ROOF.EXPANSION_JOINT
+  to: ROOF.MEMBRANE_L1
+  type: conditional
+  condition: expansion_joint
+  basis:
+  - object_state
+  - tech_card
+  sources:
+  - source: SRC.TTK_ROOF_2001
+    locator: п. 2.29
+    note: на компенсатор перед кровлей…
+  status: source_checked
+- id: F2-R25
+  from: ROOF.MEMBRANE_L1
+  to: ROOF.L1_ACCEPT
+  type: mandatory
+  basis:
+  - result_consumption
+  sources:
+  - source: SRC.TTK_ROOF_2001
+    locator: п. 3.6
+    note: актами оформляют послойное устройство двух слоёв ковра
+  status: source_checked
+- id: F2-R26
+  from: ROOF.L1_ACCEPT
+  to: ROOF.MEMBRANE_L2
+  type: mandatory
+  basis:
+  - object_state
+  - tech_card
+  sources:
+  - source: SRC.TTK_ROOF_2001
+    locator: п. 3.6
+  - source: SRC.SP71
+    locator: п. 4.6
+    note: скрывающие работы — только после акта
+  status: source_checked
+- id: F2-R27
+  from: ROOF.MEMBRANE_L2
+  to: ROOF.FLASHING
+  type: mandatory
+  basis:
+  - result_consumption
+  sources:
+  - source: SRC.TTK_ROOF_2001
+    locator: пп. 2.25, 2.32
+    note: крепление верхнего края слоёв и фартуков — после ковра
+  status: source_checked
+- id: F2-R28
+  from: ROOF.MEMBRANE_L2
+  to: ROOF.DRAIN_CLAMP
+  type: mandatory
+  basis:
+  - result_consumption
+  sources:
+  - source: SRC.TTK_ROOF_2001
+    locator: п. 2.30
+    note: слои заходят на чашу, затем хомут
+  status: source_checked
+- id: F2-R29
+  from: ROOF.MEMBRANE_L2
+  to: ROOF.ACCEPT
+  type: mandatory
+  basis:
+  - result_consumption
+  sources:
+  - source: SRC.TTK_ROOF_2001
+    locator: пп. 3.2–3.5
+  status: source_checked
+- id: F2-R30
+  from: ROOF.FLASHING
+  to: ROOF.ACCEPT
+  type: mandatory
+  basis:
+  - result_consumption
+  sources:
+  - source: SRC.TTK_ROOF_2001
+    locator: п. 3.6
+    note: акты на примыкания к выступам и парапетам
+  status: source_checked
+- id: F2-R31
+  from: ROOF.DRAIN_CLAMP
+  to: ROOF.ACCEPT
+  type: mandatory
+  basis:
+  - result_consumption
+  sources:
+  - source: SRC.TTK_ROOF_2001
+    locator: пп. 3.2, 3.6
+    note: осмотр и акты на примыкания к воронкам
+  status: source_checked
+interface_relations:
+- id: F2-X01
+  from: EXT.ROOF_SLAB_READY
+  to: ROOF.PREP_ACCEPT
+  cause: interface
+  basis:
+  - object_state
+  sources:
+  - source: SRC.TTK_ROOF_2001
+    locator: п. 2.1
+  status: source_checked
+- id: F2-X02
+  from: EXT.ROOF_SLAB_READY
+  to: ROOF.LEVEL
+  cause: interface
+  basis:
+  - object_state
+  sources:
+  - source: SRC.TTK_ROOF_2001
+    locator: п. 2.7
+  status: source_checked
+- id: F2-X03
+  from: EXT.ROOF_MATERIALS_DELIVERED
+  to: ROOF.VAPOR
+  cause: supply
+  basis: []
+  sources:
+  - source: SRC.TTK_ROOF_2001
+    locator: п. 2.4
+  status: source_checked
+- id: F2-X04
+  from: ROOF.ACCEPT
+  to: OUT.ROOF_DONE
+  cause: interface
+  basis:
+  - result_consumption
+  sources:
+  - source: SRC.TTK_ROOF_2001
+    locator: п. 3.5
+    note: приёмка оформляется актом
+  status: source_checked
+non_relations:
+- pair:
+  - ROOF.PREP_ACCEPT
+  - ROOF.LEVEL
+  reason: приёмка и нивелировка независимы
+- pair:
+  - ROOF.LEVEL
+  - ROOF.BASE_CLEAN
+  reason: геодезист и кровельщики; порядок — загрузка
+- pair:
+  - ROOF.PARAPET_PLASTER
+  - ROOF.BASE_CLEAN
+  reason: разные бригады (штукатуры и кровельщики)
+- pair:
+  - ROOF.PARAPET_PLASTER
+  - ROOF.PREP_ACCEPT
+  reason: штукатурка не ждёт приёмки патрубков и воронок
+- pair:
+  - ROOF.FLASHING
+  - ROOF.DRAIN_CLAMP
+  reason: разные места кровли, параллельные работы
+- pair:
+  - ROOF.SCREED_JOINTS
+  - ROOF.EXPANSION_JOINT
+  reason: разные узлы, оба лишь до нижнего слоя
+- pair:
+  - ROOF.SCREED_JOINTS
+  - ROOF.REINFORCE
+  reason: оба до нижнего слоя, между собой не связаны
+- pair:
+  - ROOF.EXPANSION_JOINT
+  - ROOF.REINFORCE
+  reason: оба до нижнего слоя, между собой не связаны
+- pair: [ROOF.EXPANSION_JOINT, ROOF.PRIMER]
+  reason: "слои шва укладывают насухо — грунтовка не нужна (рис. узла шва, поз. 6, 7)"
+- pair: [ROOF.EJ_CURBS, ROOF.UPSTANDS]
+  reason: "бортики шва и бортики у стен — разные места, независимы"

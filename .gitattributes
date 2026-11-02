@@ -1,0 +1,3 @@
+# Store text files with LF in the repository whatever the editor uses locally
+# (CI runs on Linux; a Makefile with CRLF breaks make there).
+* text=auto eol=lf
