@@ -6,6 +6,7 @@ A wrong value fails at start, not in the middle of a run.
 
 from pathlib import Path
 
+from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -19,6 +20,8 @@ class Settings(BaseSettings):
     seed: int = 42
     data_dir: Path = Path("data")
     results_dir: Path = Path("results")
+    model_api_key: SecretStr | None = None
+    model_base_url: str = "https://api.deepseek.com"
 
 
 def load_settings() -> Settings:

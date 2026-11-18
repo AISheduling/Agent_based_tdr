@@ -36,3 +36,6 @@ CLAUDE.local.md
 .idea/
 .vscode/
 .DS_Store
+
+# Raw baseline outputs (prompts, model answers); results tables go to results/
+runs/
