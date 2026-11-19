@@ -1,0 +1,14 @@
+# L1: structured LLM baseline. One call per package, no documents, no verifier feedback.
+# Model names change: deepseek-chat / deepseek-reasoner are deprecated by DeepSeek.
+name: llm-structured
+model: deepseek-flash
+temperature: 0.0
+max_tokens: 8000
+json_mode: true
+retries_on_blank: 2
+# deepseek-flash thinks by default; reasoning tokens count against max_tokens and the JSON
+# answer came back empty (finish=length). L1 runs without thinking; a thinking variant is a
+# separate config.
+extra_body:
+  thinking:
+    type: disabled

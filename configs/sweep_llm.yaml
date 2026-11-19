@@ -1,0 +1,13 @@
+# L1 over every instance of every family. 9 instances x 3 seeds = 27 calls.
+# The seed changes the order of operations in the prompt (temperature is 0).
+name: l1-structured
+method: llm-structured
+method_config: configs/baseline_llm.yaml
+families:
+  - data/families/flat_roof
+  - data/families/monolithic_floor
+seeds: [1, 2, 3]
+stage: baseline
+pr: ""
+# L1 has no documents, so every mandatory edge lacks a source: not a reason to call it invalid.
+allowed_codes: [no_source]

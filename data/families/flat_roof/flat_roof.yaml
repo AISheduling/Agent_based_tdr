@@ -1,0 +1,260 @@
+# Семейство F2: плоская кровля из наплавляемого рулонного материала «Филизол».
+# Источники:
+#   SRC.TTK_ROOF_2001 — ТТК на устройство кровель из наплавляемого материала «Филизол» (ЦНИИОМТП, 2001), пп. 1.x–3.x, табл. 5
+#   SRC.SP71          — СП 71.13330.2017, раздел 5 «Кровли»
+#   SRC.TTK_ROOF_1991 — ТТК на кровли из наплавляемых материалов (1991), разд. 2 — для сверки
+# Графика производства работ в ТТК нет (разд. 5 пуст), поэтому schedule_row не используется.
+#
+# requires_if: дополнительные требования, действующие только при истинном параметре.
+# optional_operations: операция входит в экземпляр только при истинном параметре.
+
+family: flat_roof
+name: Плоская кровля из наплавляемого материала «Филизол»
+scope: >
+  Неэксплуатируемая кровля по ж/б плитам покрытия: пароизоляция, теплоизоляция,
+  (при необходимости) выравнивающая стяжка, двухслойный ковёр Филизол-Н (нижний) + Филизол-К
+  (верхний, с крупнозернистой посыпкой). Летние условия.
+
+parameters:
+  screed: "есть выравнивающая стяжка по утеплителю (обязательна при сыпучем утеплителе — СП 71 п. 5.3.22)"
+  bitumen_vapor_barrier: "пароизоляция из битумных материалов — под неё нужен праймер (СП 71 п. 5.1.13)"
+  expansion_joint: "в покрытии есть деформационный шов"
+
+optional_operations:
+  ROOF.PRIMER_VB: bitumen_vapor_barrier
+  ROOF.SCREED: screed
+  ROOF.SCREED_READY: screed
+  ROOF.SCREED_JOINTS: screed
+  ROOF.EXPANSION_JOINT: expansion_joint
+  ROOF.EJ_CURBS: expansion_joint
+
+operations:
+
+  # ==== Приёмка основания и подготовка (ТТК пп. 2.1, 2.7, 2.11; СП 71 пп. 5.1.3, 5.1.5) ====
+  - id: ROOF.PREP_ACCEPT
+    name: Приёмка предшествующих работ (замоноличивание швов, воронки, компенсаторы, патрубки, анкеры)
+    family: flat_roof
+    kind: control
+    requires: [roof_slab.ready]
+    produces: [roof_prep.accepted]
+    zone: roof
+    ttk: "п. 2.1; СП 71 п. 5.1.3"
+  - id: ROOF.LEVEL
+    name: Нивелировка несущих плит и установка маяков
+    family: flat_roof
+    kind: work
+    requires: [roof_slab.ready]
+    produces: [roof_slabs.levelled]
+    zone: roof
+    ttk: "п. 2.7"
+  - id: ROOF.PARAPET_PLASTER
+    name: Оштукатуривание стен и парапетов в местах примыканий (раствор М50, не менее 300 мм)
+    family: flat_roof
+    kind: work
+    requires: []
+    produces: [parapet.plastered]
+    zone: roof_parapet
+    ttk: "п. 2.13; СП 71 п. 5.1.3"
+  - id: ROOF.BASE_CLEAN
+    name: Очистка, обеспыливание и просушка основания
+    family: flat_roof
+    kind: work
+    requires: [roof_prep.accepted]
+    produces: [roof_base.clean_dry]
+    zone: roof
+    ttk: "п. 2.11; СП 71 п. 5.1.5"
+
+  # ==== Пароизоляция и теплоизоляция (ТТК пп. 2.7–2.11; СП 71 пп. 5.1.13, 5.2.1, 5.3.1) ====
+  - id: ROOF.PRIMER_VB
+    name: Огрунтовка основания битумным праймером под пароизоляцию
+    family: flat_roof
+    kind: work
+    requires: [roof_base.clean_dry]
+    produces: [roof_base.primed_vb]
+    zone: roof
+    ttk: "СП 71 пп. 5.1.13, 5.1.14"
+  - id: ROOF.VAPOR
+    name: Устройство пароизоляции
+    family: flat_roof
+    kind: work
+    requires: [roof_base.clean_dry, roof_materials.delivered, parapet.plastered]
+    requires_if:
+      bitumen_vapor_barrier: [roof_base.primed_vb]
+    produces: [vapor_barrier.done]
+    zone: roof
+    ttk: "п. 2.8; СП 71 п. 5.2.1"
+  - id: ROOF.INSUL
+    name: Укладка плит теплоизоляции (швы шире 5 мм заполняют утеплителем)
+    family: flat_roof
+    kind: work
+    requires: [vapor_barrier.done, roof_slabs.levelled]
+    produces: [insulation.done]
+    zone: roof
+    ttk: "пп. 2.7–2.11; СП 71 п. 5.3.1"
+    note: "Только в сухую погоду; намокший утеплитель заменяют (пп. 2.10, 2.11)"
+  - id: ROOF.INSUL_ACCEPT
+    name: Контроль теплоизоляции (влажность ≤ 10 %) и акт скрытых работ
+    family: flat_roof
+    kind: control
+    requires: [insulation.done]
+    produces: [insulation.accepted]
+    zone: roof
+    ttk: "п. 2.11; табл. 5"
+
+  # ==== Выравнивающая стяжка — только при screed (ТТК пп. 2.12–2.16; табл. 5) ====
+  - id: ROOF.SCREED
+    name: Устройство выравнивающей стяжки полосами между маяками, с температурно-усадочными швами
+    family: flat_roof
+    kind: work
+    requires: [insulation.accepted]
+    produces: [screed.placed]
+    zone: roof
+    ttk: "пп. 2.12, 2.14, 2.15"
+    note: "Цементно-песчаная — полосами до 3 м (п. 2.15), участки не более 6×6 м (п. 2.14)"
+  - id: ROOF.SCREED_READY
+    name: Контроль прочности и влажности стяжки (ЦПС ≥ 50 кгс/см², влажность ≤ 5 %)
+    family: flat_roof
+    kind: control
+    requires: [screed.placed]
+    produces: [screed.ready]
+    zone: roof
+    ttk: "табл. 5; СП 71 п. 5.1.6, табл. 5.1"
+
+  # ==== Подготовка основания под ковёр (ТТК пп. 1.4, 2.1, 2.13, 2.15; СП 71 пп. 5.1.13–5.1.16) ====
+  - id: ROOF.UPSTANDS
+    name: Устройство наклонных бортиков 45° (высота ≥ 100 мм) у стен, шахт и парапетов
+    family: flat_roof
+    kind: work
+    requires: [insulation.accepted, parapet.plastered]
+    produces: [upstands.done]
+    zone: roof_parapet
+    ttk: "п. 2.13"
+  - id: ROOF.BASE_CHECK
+    name: Проверка уклонов и ровности основания перед наклейкой (рейка 3 м, просвет ≤ 10 мм)
+    family: flat_roof
+    kind: control
+    requires: [insulation.accepted, upstands.done]
+    requires_if:
+      screed: [screed.ready]
+    produces: [roof_base.checked]
+    zone: roof
+    ttk: "п. 2.1; табл. 5"
+  - id: ROOF.PRIMER
+    name: Огрунтовка основания под кровельный ковёр
+    family: flat_roof
+    kind: work
+    requires: [roof_base.checked]
+    produces: [roof_base.primed]
+    zone: roof
+    ttk: "пп. 1.4, 2.15; СП 71 пп. 5.1.13–5.1.15"
+    note: "Ковёр — только по просохшей грунтовке (п. 2.1; СП 71 п. 5.1.16 — проверка тампоном; ТТК 1991 — через 24 ч)"
+  - id: ROOF.SCREED_JOINTS
+    name: Заполнение швов стяжки герметиком и наклейка полосок Филизола 150–200 мм над швами
+    family: flat_roof
+    kind: work
+    requires: [roof_base.primed]
+    produces: [screed_joints.covered]
+    zone: roof
+    ttk: "п. 2.14"
+  - id: ROOF.EJ_CURBS
+    name: Устройство бортиков из лёгкого бетона по краям деформационного шва
+    family: flat_roof
+    kind: work
+    requires: [insulation.accepted]
+    requires_if:
+      screed: [screed.ready]
+    produces: [ej_curbs.done]
+    zone: roof
+    ttk: "п. 2.29; рис. узла деформационного шва, поз. 11"
+  - id: ROOF.EXPANSION_JOINT
+    name: Устройство деформационного шва (минвата на компенсатор, выкружка из оцинковки, стеклоткань и Филизол насухо)
+    family: flat_roof
+    kind: work
+    requires: [ej_curbs.done]                    # было: [roof_base.primed]
+    produces: [expansion_joint.done]
+    zone: roof
+    ttk: "п. 2.29; рис. узла деформационного шва, поз. 6–10"
+    note: "Стеклоткань и Филизол укладывают насухо (поз. 6, 7) — огрунтовка основания не требуется; компенсатор закреплён до изоляционных работ (п. 2.1)"
+
+  # ==== Кровельный ковёр (ТТК пп. 2.17–2.27, 2.31; СП 71 пп. 5.4.13, 5.4.15) ====
+  - id: ROOF.REINFORCE
+    name: Дополнительные слои усиления в ендовах, у воронок, конька и в примыканиях
+    family: flat_roof
+    kind: work
+    requires: [roof_base.primed]
+    produces: [reinforcement_layers.done]
+    zone: roof
+    ttk: "пп. 2.18, 2.24, 2.26, 2.31; СП 71 пп. 5.4.13, 5.4.15"
+    note: "Работу начинают с пониженных мест (п. 2.18); куски для вертикалей нарезают заранее (п. 2.31), клеят снизу вверх (п. 2.24)"
+  - id: ROOF.MEMBRANE_L1
+    name: Наплавление нижнего слоя ковра (Филизол-Н), нахлёст 100 мм
+    family: flat_roof
+    kind: work
+    requires: [reinforcement_layers.done]
+    requires_if:
+      screed: [screed_joints.covered]
+      expansion_joint: [expansion_joint.done]
+    produces: [membrane.layer1]
+    zone: roof
+    ttk: "пп. 2.17–2.23"
+  - id: ROOF.L1_ACCEPT
+    name: Освидетельствование нижнего слоя ковра (акт скрытых работ)
+    family: flat_roof
+    kind: control
+    requires: [membrane.layer1]
+    produces: [membrane.layer1_accepted]
+    zone: roof
+    ttk: "п. 3.6"
+  - id: ROOF.MEMBRANE_L2
+    name: Наплавление верхнего слоя ковра (Филизол-К с крупнозернистой посыпкой)
+    family: flat_roof
+    kind: work
+    requires: [membrane.layer1_accepted]
+    produces: [membrane.layer2]
+    zone: roof
+    ttk: "пп. 2.11, 2.17–2.23"
+
+  # ==== Примыкания и воронки (ТТК пп. 2.25, 2.30, 2.32) ====
+  - id: ROOF.FLASHING
+    name: Закрепление верхнего края дополнительных слоёв, установка фартуков и обделка парапетов
+    family: flat_roof
+    kind: work
+    requires: [membrane.layer2]
+    produces: [flashing.done]
+    zone: roof_parapet
+    ttk: "пп. 2.25, 2.32"
+  - id: ROOF.DRAIN_CLAMP
+    name: Заведение слоёв на водоприёмную чашу воронок и закрепление хомутом
+    family: flat_roof
+    kind: work
+    requires: [membrane.layer2]
+    produces: [drains.clamped]
+    zone: roof
+    ttk: "п. 2.30"
+
+  # ==== Приёмка (ТТК пп. 3.2–3.6) ====
+  - id: ROOF.ACCEPT
+    name: "Приёмка кровли — осмотр, акты скрытых работ на примыкания, акт приёмки"
+    family: flat_roof
+    kind: control
+    requires: [membrane.layer2, flashing.done, drains.clamped]
+    produces: [roof.accepted]
+    zone: roof
+    ttk: "пп. 3.2–3.6"
+
+external_inputs:
+  - id: EXT.ROOF_SLAB_READY
+    name: Плиты покрытия верхнего этажа смонтированы/набрали прочность
+    produces: [roof_slab.ready]
+    cause: interface
+    note: "Для монолитного здания — выход OUT.NEXT_FLOOR_READY последнего этажа (семейство monolithic_floor)"
+  - id: EXT.ROOF_MATERIALS_DELIVERED
+    name: Пароизоляция, утеплитель, Филизол, герметики доставлены
+    produces: [roof_materials.delivered]
+    cause: supply
+    ttk: "п. 2.4"
+
+external_outputs:
+  - id: OUT.ROOF_DONE
+    name: Кровля принята
+    requires: [roof.accepted]

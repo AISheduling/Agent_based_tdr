@@ -17,6 +17,9 @@ build/
 # data and experiment stores
 data/*
 !data/README.md
+# корпус шаблонов (эталон): маленький текстовый, хранится в репозитории
+!data/sources.yaml
+!data/families/
 mlflow.db
 mlruns/
 mlartifacts/
@@ -33,3 +36,6 @@ CLAUDE.local.md
 .idea/
 .vscode/
 .DS_Store
+
+# Raw baseline outputs (prompts, model answers); results tables go to results/
+runs/
