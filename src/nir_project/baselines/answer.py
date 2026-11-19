@@ -1,4 +1,5 @@
-"""Parse a model's JSON text into a graph for the verifier.
+"""
+Parse a model's JSON text into a graph for the verifier.
 
 The parser does not judge the answer: an edge to an unknown operation, a bad type or a cycle goes
 to the verifier, which reports it. The parser only drops what cannot be an edge at all and records
