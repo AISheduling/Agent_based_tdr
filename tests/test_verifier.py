@@ -21,6 +21,7 @@ from nir_project.verifier import (
     Report,
     check_family,
     check_graph,
+    compute_metrics,
     enumerate_instances,
     find_cycle,
     load_family,
@@ -191,7 +192,8 @@ def test_negative_removed_necessary_relation() -> None:
     _, ref, pairs = _real_instance()
     checked = 0
     for e in ref.edges:
-        if e.type != "mandatory":
+        # An unconfirmed edge is masked: removing it changes only the `*_full` counts.
+        if e.type != "mandatory" or e.status != "source_checked":
             continue
         bad = answer(ref, drop={e.id or ""})
         if transitive_closure([(x.src, x.dst) for x in bad.edges if x.type == "mandatory"]) == (
@@ -257,6 +259,114 @@ def test_new_operation_is_rejected() -> None:
     ref = toy_reference()
     bad = Graph(ref.operations | {"NEW"}, answer(ref).edges)
     assert "unknown_operation" in verify_graph(ref, bad).report.codes("error")
+
+
+# --- unconfirmed edges, reference `unknown` and cycles: the mask of ADR 0001 ---------------------
+
+
+def expert(a: str, b: str) -> Edge:
+    """A mandatory reference edge that waits for an expert."""
+    return Edge(
+        a,
+        b,
+        "mandatory",
+        ("zone_access",),
+        (SourceRef("SRC.EXPERT", None),),
+        status="expert_needed",
+    )
+
+
+def graph(*edges: Edge, ops: str = "") -> Graph:
+    nodes = {n for e in edges for n in (e.src, e.dst)} | set(ops)
+    return Graph(frozenset(nodes), edges)
+
+
+def _monolithic() -> tuple[Graph, list[tuple[str, str]]]:
+    family = load_family(FAMILIES / "monolithic_floor", SOURCES)
+    inst = make_instance(family, {})
+    pairs = [nr.pair for nr in family.non_relations if set(nr.pair) <= inst.operation_ids]
+    return reference_graph(inst), pairs
+
+
+def test_unknown_in_reference_is_not_a_false_positive() -> None:
+    # The case from the review of PR #3: reference A->B unknown, answer asserts A->B.
+    ref = graph(Edge("A", "B", "unknown"))
+    m = compute_metrics(ref, graph(hard("A", "B")))
+    assert (m.tp, m.fp, m.fn) == (0, 0, 0)
+    assert m.masked_pairs == 1 and m.masked_predicted == 1
+    assert m.fp_full == 1  # the sensitivity score keeps the unmasked count
+
+
+def test_unknown_in_reference_yields_to_a_confirmed_reverse_order() -> None:
+    ref = graph(hard("B", "C"), hard("C", "A"), Edge("A", "B", "unknown"))
+    m = compute_metrics(ref, graph(hard("A", "B"), ops="C"))
+    assert m.fp == 1 and m.masked_predicted == 0
+
+
+def test_preferred_in_reference_is_a_false_positive() -> None:
+    ref = graph(Edge("A", "B", "preferred"))
+    m = compute_metrics(ref, graph(hard("A", "B")))
+    assert (m.fp, m.fp_on_preferred, m.masked_predicted) == (1, 1, 0)
+
+
+def test_pair_only_through_an_unconfirmed_edge_is_masked() -> None:
+    # ADR 0001, example 1: WALL.PLATFORM_REMOVE -> SLAB.FORM_DECK exists only through F1-R31.
+    ref, _ = _monolithic()
+    pair = ("WALL.PLATFORM_REMOVE", "SLAB.FORM_DECK")
+    for a, b in (pair, pair[::-1]):
+        m = compute_metrics(ref, Graph(ref.operations, (hard(a, b),)))
+        assert (m.tp, m.fp, m.masked_predicted) == (0, 0, 1), (a, b)
+
+
+def test_pair_with_an_alternative_confirmed_path_is_scored() -> None:
+    # ADR 0001, example 2: A->B waits for an expert, A->C->B is confirmed.
+    ref = graph(expert("A", "B"), hard("A", "C"), hard("C", "B"))
+    m = compute_metrics(ref, graph(hard("A", "B"), ops="C"))
+    assert (m.tp, m.fp, m.fn) == (1, 0, 2)
+    m = compute_metrics(ref, graph(hard("A", "C"), hard("C", "B")))
+    assert (m.tp, m.fp, m.fn) == (3, 0, 0)
+
+
+def test_unknown_answer_on_masked_and_confirmed_pairs() -> None:
+    # ADR 0001, example 3: unknown on a masked pair gives nothing, on a confirmed pair - FN.
+    ref, _ = _monolithic()
+    unknowns = (
+        Edge("WALL.PLATFORM_REMOVE", "SLAB.FORM_DECK", "unknown"),
+        Edge("SLAB.REBAR_ACCEPT", "SLAB.CONCRETE", "unknown"),
+    )
+    m = compute_metrics(ref, Graph(ref.operations, unknowns))
+    assert m.fp == 0 and m.fn_declared_unknown == 1 and m.unknown_pairs == 2
+
+
+def test_pair_outside_the_reference_on_a_non_relation() -> None:
+    # ADR 0001, example 4.
+    ref, pairs = _monolithic()
+    extra = hard("WALL.PLATFORM_REMOVE", "SLAB.FORM_SUPPORTS")
+    m = compute_metrics(ref, Graph(ref.operations, (extra,)), pairs)
+    assert (m.fp, m.fp_on_non_relation, m.masked_predicted) == (1, 1, 0)
+
+
+def test_masked_pairs_of_the_real_corpus() -> None:
+    ref, _ = _monolithic()
+    m = compute_metrics(ref, answer(ref))
+    assert (m.tp + m.fn, m.tp_full + m.fn_full) == (367, 605)  # ADR 0001
+    assert m.masked_pairs == 605 - 367 and m.recall == m.recall_full == 1.0
+    assert m.fp == 0 and m.masked_predicted == 605 - 367
+
+
+def test_dropping_an_unconfirmed_edge_changes_only_the_full_score() -> None:
+    ref, _ = _monolithic()
+    m = compute_metrics(ref, answer(ref, drop={"F1-R19"}))
+    assert m.fn == 0 and m.recall == 1.0
+    assert m.fn_full > 0 and m.recall_full < 1.0
+
+
+def test_cyclic_answer_gets_no_true_positives() -> None:
+    ref = toy_reference()  # confirmed closure: A<B, B<C, A<C, X<Y
+    m = compute_metrics(ref, answer(ref, add=(hard("C", "A"),)))
+    assert m.cyclic and (m.tp, m.fn, m.recall) == (0, 4, 0.0)
+    assert m.fp > 0 and not m.fp_budget_ok
+    assert m.tp_full == 0
 
 
 def test_edge_provenance_is_required() -> None:
@@ -565,3 +675,24 @@ def test_cli_missing_explicit_registry_exits_2(capsys: pytest.CaptureFixture[str
 
     assert main(["family", str(FAMILIES / "flat_roof"), "--sources", "nope.yaml"]) == 2
     assert "nope.yaml not found" in capsys.readouterr().err
+
+
+def test_cli_graph_refuses_a_broken_reference(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    # The case from the review of PR #3: a typo in the corpus must stop `graph` before scoring.
+    import shutil
+
+    broken = tmp_path / "flat_roof"
+    shutil.copytree(FAMILIES / "flat_roof", broken)
+    rels = broken / "flat_roof_relations.yaml"
+    rels.write_text(
+        rels.read_text(encoding="utf-8").replace("type: mandatory", "type: mandatry", 1),
+        encoding="utf-8",
+    )
+    path = str(_answer_file(tmp_path / "ok.yaml", _flat_roof_ref()))
+    for extra in ((), ("--json",)):
+        assert _cli("graph", str(broken), path, *extra) == 2
+        out = capsys.readouterr()
+        assert out.out == ""  # no metrics are published
+        assert "invalid_type" in out.err and "nothing is scored" in out.err

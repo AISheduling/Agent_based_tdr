@@ -4,7 +4,7 @@
   python -m nir_project.verifier graph data/families/flat_roof answer.yaml --param screed=1 [--json]
 
 Exit codes: 0 no errors, 1 verification errors, 2 bad input (missing file, broken YAML,
-wrong arguments).
+wrong arguments, or a reference that fails the `family` checks: `graph` scores nothing then).
 """
 
 from __future__ import annotations
@@ -29,11 +29,12 @@ class UsageError(Exception):
     """Wrong command-line input; reported with exit code 2."""
 
 
-def _print_report(report: Report, title: str) -> None:
-    print(f"{title}: {len(report.errors)} error(s), {len(report.warnings)} warning(s)")
+def _print_report(report: Report, title: str, *, to_stderr: bool = False) -> None:
+    out = sys.stderr if to_stderr else sys.stdout
+    print(f"{title}: {len(report.errors)} error(s), {len(report.warnings)} warning(s)", file=out)
     for i in report.issues:
         where = f" [{i.instance}]" if i.instance else ""
-        print(f"  {i.severity.upper():7} {i.code:28} {i.subject}: {i.message}{where}")
+        print(f"  {i.severity.upper():7} {i.code:28} {i.subject}: {i.message}{where}", file=out)
 
 
 def _parse_params(items: list[str]) -> dict[str, bool]:
@@ -80,6 +81,15 @@ def _run_family(dirs: list[Path], sources: Path | None) -> int:
 
 def _run_graph(args: argparse.Namespace, sources: Path | None) -> int:
     family = load_family(args.dir, sources)
+    # Metrics against a broken reference would look like a model's result; refuse instead.
+    reference_report = check_family(family)
+    if not reference_report.ok:
+        _print_report(reference_report, f"reference {args.dir.name}", to_stderr=True)
+        print(
+            f"error: the reference of {args.dir.name} fails the family checks; nothing is scored",
+            file=sys.stderr,
+        )
+        return 2
     inst = make_instance(family, _parse_params(args.param))
     pairs = [nr.pair for nr in family.non_relations if set(nr.pair) <= inst.operation_ids]
     verdict = verify_graph(reference_graph(inst), load_graph(args.graph), pairs)
@@ -97,7 +107,12 @@ def _run_graph(args: argparse.Namespace, sources: Path | None) -> int:
         m = verdict.metrics
         print(
             f"TP={m.tp} FP={m.fp} FN={m.fn} recall={m.recall:.3f} "
-            f"fp_rate={m.fp_rate:.3f} (budget ok: {m.fp_budget_ok}) unknown={m.unknown_pairs}"
+            f"fp_rate={m.fp_rate:.3f} (budget ok: {m.fp_budget_ok}) unknown={m.unknown_pairs} "
+            f"masked={m.masked_predicted}/{m.masked_pairs}"
+        )
+        print(
+            f"full reference: TP={m.tp_full} FP={m.fp_full} FN={m.fn_full} "
+            f"recall={m.recall_full:.3f}"
         )
     return 0 if verdict.ok else 1
 

@@ -108,6 +108,7 @@ class Edge:
     basis: tuple[str, ...] = ()
     sources: tuple[SourceRef, ...] = ()
     id: str | None = None
+    status: str | None = None  # reference edges only; None (a hand-built graph) counts as confirmed
 
 
 @dataclass(frozen=True)

@@ -97,7 +97,8 @@ def reference_graph(instance: Instance) -> Graph:
     """The reference of an instance as a graph.
 
     Active `conditional` relations are in force, so they become `mandatory` edges here;
-    `preferred` and `unknown` keep their type and stay out of the closure.
+    `preferred` and `unknown` keep their type and stay out of the closure. The status is kept:
+    the main score uses only confirmed (`source_checked`) edges.
     """
     edges = tuple(
         Edge(
@@ -107,6 +108,7 @@ def reference_graph(instance: Instance) -> Graph:
             basis=r.basis,
             sources=r.sources,
             id=r.id,
+            status=r.status,
         )
         for r in instance.relations
     )
