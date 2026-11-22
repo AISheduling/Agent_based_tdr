@@ -3,15 +3,23 @@
 from __future__ import annotations
 
 import json
+import shutil
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 
 import pytest
+import yaml
 
 from nir_project.baselines import Completion, Package, build_package, load_family_meta, predict
 from nir_project.baselines.answer import parse_answer
 from nir_project.baselines.prompt import build_messages, render_user_prompt
-from nir_project.verifier import load_family, make_instance, reference_graph, verify_graph
+from nir_project.verifier import (
+    load_family,
+    load_graph,
+    make_instance,
+    reference_graph,
+    verify_graph,
+)
 from nir_project.verifier.instances import Instance
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -126,8 +134,91 @@ def test_unknown_answer_is_not_a_false_positive() -> None:
     inst = _instance()
     ref = reference_graph(inst)
     edges = [(e.src, e.dst) for e in ref.edges if e.type == "mandatory"]
+    confirmed = [
+        (e.src, e.dst) for e in ref.edges if e.type == "mandatory" and e.status == "source_checked"
+    ]
     parsed = parse_answer(_answer(edges, type_="unknown"), build_package(inst, {}, 42))
     metrics = verify_graph(ref, parsed.graph).metrics
     assert (metrics.tp, metrics.fp) == (0, 0)
-    # unknown is counted per declared pair, not through the closure
-    assert metrics.fn_declared_unknown == len(edges)
+    # unknown is counted per declared pair, not through the closure; an unconfirmed edge
+    # (F2-R11) is masked, so it is not a missed pair at all
+    assert len(confirmed) < len(edges)
+    assert metrics.fn_declared_unknown == len(confirmed)
+
+
+def test_saved_answer_rescores_to_the_same_metrics(tmp_path: Path) -> None:
+    # What `summary.json` -> `rescore` relies on: answer.yaml read back by the verifier
+    # gives the metrics of the run, without a new call.
+    inst = _instance(screed=True)
+    ref = reference_graph(inst)
+    edges = [(e.src, e.dst) for e in ref.edges if e.type == "mandatory"][3:]
+    text = json.dumps(
+        {
+            "relations": [
+                *json.loads(_answer(edges))["relations"],
+                {"from": "ROOF.LEVEL", "to": "ROOF.BASE_CLEAN", "type": "mandatory"},
+                {"from": "ROOF.FLASHING", "to": "ROOF.DRAIN_CLAMP", "type": "unknown"},
+            ]
+        }
+    )
+    parsed = parse_answer(text, build_package(inst, load_family_meta(FLAT_ROOF), 42))
+    path = tmp_path / "answer.yaml"
+    path.write_text(
+        yaml.safe_dump(parsed.as_graph_dict(), allow_unicode=True, sort_keys=False),
+        encoding="utf-8",
+    )
+    first = verify_graph(ref, parsed.graph).metrics
+    assert first.fp > 0 and first.fn > 0 and first.unknown_pairs == 1
+    assert verify_graph(ref, load_graph(path)).metrics == first
+
+
+def _cli(*args: str) -> int:
+    from nir_project.baselines.__main__ import main
+
+    return main(list(args))
+
+
+def test_cli_refuses_a_broken_reference_before_any_call(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    broken = tmp_path / "flat_roof"
+    shutil.copytree(FLAT_ROOF, broken)
+    rels = broken / "flat_roof_relations.yaml"
+    rels.write_text(
+        rels.read_text(encoding="utf-8").replace("type: mandatory", "type: mandatry", 1),
+        encoding="utf-8",
+    )
+    assert _cli(str(broken), "--dry-run") == 2
+    out = capsys.readouterr()
+    assert out.out == "" and "invalid_type" in out.err and "nothing is called" in out.err
+
+
+def test_cli_unknown_parameter_is_a_clear_error(capsys: pytest.CaptureFixture[str]) -> None:
+    assert _cli(str(FLAT_ROOF), "--param", "scred=1", "--dry-run") == 2
+    assert "scred" in capsys.readouterr().err
+
+
+def test_client_keeps_what_the_provider_reports() -> None:
+    from types import SimpleNamespace
+
+    from nir_project.baselines.llm import LLMConfig, OpenAICompatibleClient
+
+    def create(**kwargs: object) -> SimpleNamespace:
+        return SimpleNamespace(
+            id="resp-1",
+            model="deepseek-flash-2026-10",
+            system_fingerprint="fp_abc",
+            usage=SimpleNamespace(prompt_tokens=10, completion_tokens=5),
+            choices=[SimpleNamespace(message=SimpleNamespace(content="{}"), finish_reason="stop")],
+        )
+
+    client = OpenAICompatibleClient(LLMConfig(), api_key="test", base_url="http://localhost")
+    client._client = SimpleNamespace(  # type: ignore[assignment]
+        chat=SimpleNamespace(completions=SimpleNamespace(create=create))
+    )
+    c = client.complete([{"role": "user", "content": "x"}])
+    assert (c.model, c.response_id, c.system_fingerprint) == (
+        "deepseek-flash-2026-10",
+        "resp-1",
+        "fp_abc",
+    )

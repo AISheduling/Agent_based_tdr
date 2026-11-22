@@ -4,7 +4,12 @@
   python -m nir_project.baselines data/families/flat_roof --param screed=1 --seed 42
 
 `--dry-run` prints the prompt and calls nothing. Otherwise the answer is verified against the
-reference of the instance; prompt, raw text and the answer in verifier format go to `--out`.
+reference of the instance; prompt, raw text and the answer in verifier format go to `--out`, and
+`summary.json` records the commit, the instance, what the provider reported about the call and
+the command that rescores the saved answer without a new call.
+
+Before anything, the family must pass the verifier's `family` checks: a call against a broken
+reference would be paid for and scored wrong (exit code 2).
 """
 
 from __future__ import annotations
@@ -23,9 +28,13 @@ from nir_project.baselines.package import build_package, load_family_meta
 from nir_project.baselines.prompt import PROMPT_VERSION, build_messages
 from nir_project.baselines.structured import predict
 from nir_project.config import load_settings
+from nir_project.pipeline import current_commit
+from nir_project.verifier.checks import check_family
 from nir_project.verifier.compare import verify_graph
 from nir_project.verifier.instances import make_instance, reference_graph
 from nir_project.verifier.model import load_family
+
+DEFAULT_SOURCES = Path("data/sources.yaml")
 
 
 def _params(items: list[str]) -> dict[str, bool]:
@@ -50,8 +59,26 @@ def main(argv: list[str] | None = None) -> int:
 
     settings = load_settings()
     seed = settings.seed if args.seed is None else args.seed
-    family = load_family(args.family)
-    instance = make_instance(family, _params(args.param))
+    try:
+        family = load_family(args.family, DEFAULT_SOURCES if DEFAULT_SOURCES.exists() else None)
+    except (ValueError, OSError) as exc:  # FormatError is a ValueError
+        print(f"error: cannot load {args.family}: {exc}", file=sys.stderr)
+        return 2
+    reference_report = check_family(family)
+    if not reference_report.ok:
+        for issue in reference_report.errors:
+            print(f"  {issue.code:28} {issue.subject}: {issue.message}", file=sys.stderr)
+        print(
+            f"error: the reference of {args.family.name} fails the verifier's family checks; "
+            "nothing is called",
+            file=sys.stderr,
+        )
+        return 2
+    try:
+        instance = make_instance(family, _params(args.param))
+    except ValueError as exc:  # unknown parameter name
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
     package = build_package(instance, load_family_meta(args.family), seed)
 
     if args.dry_run:
@@ -79,9 +106,21 @@ def main(argv: list[str] | None = None) -> int:
         json.dumps(result.messages, ensure_ascii=False, indent=1), encoding="utf-8"
     )
     (run_dir / "raw.txt").write_text(result.completion.text, encoding="utf-8")
-    with (run_dir / "answer.yaml").open("w", encoding="utf-8") as fh:
+    answer_path = run_dir / "answer.yaml"
+    with answer_path.open("w", encoding="utf-8") as fh:
         yaml.safe_dump(result.answer.as_graph_dict(), fh, allow_unicode=True, sort_keys=False)
+    rescore = " ".join(
+        [
+            "python -m nir_project.verifier graph",
+            args.family.as_posix(),
+            answer_path.as_posix(),
+            *(f"--param {k}={int(v)}" for k, v in sorted(instance.params.items())),
+        ]
+    )
     summary = {
+        "commit": current_commit(),
+        "family": args.family.as_posix(),
+        "params": dict(instance.params),
         "instance": instance.label,
         "seed": seed,
         "prompt_version": PROMPT_VERSION,
@@ -90,6 +129,7 @@ def main(argv: list[str] | None = None) -> int:
         "parse_problems": list(result.answer.problems),
         "issues": dict(Counter(i.code for i in verdict.report.issues)),
         "metrics": verdict.metrics.as_dict(),
+        "rescore": rescore,
     }
     (run_dir / "summary.json").write_text(
         json.dumps(summary, ensure_ascii=False, indent=1), encoding="utf-8"
@@ -110,6 +150,7 @@ def main(argv: list[str] | None = None) -> int:
         f"  tokens in/out={result.completion.prompt_tokens}/{result.completion.completion_tokens} "
         f"time={result.completion.seconds:.1f}s finish={c.finish_reason} -> {run_dir}"
     )
+    print(f"  rescore without a call: {rescore}")
     return 0
 
 

@@ -22,6 +22,8 @@ class Completion:
     seconds: float = 0.0
     finish_reason: str = ""
     attempts: int = 1
+    response_id: str = ""  # provider's id of the last response
+    system_fingerprint: str = ""  # provider's backend configuration, if it reports one
 
 
 class ChatClient(Protocol):
@@ -33,7 +35,7 @@ class LLMConfig:
     """Everything about the call that changes the answer; logged with every run."""
 
     name: str = "llm-structured"
-    model: str = "DeepSeek-V4.1-Flash"
+    model: str = "deepseek-flash"
     temperature: float = 0.0
     max_tokens: int = 8000
     json_mode: bool = True
@@ -71,13 +73,15 @@ class OpenAICompatibleClient:
         prompt_tokens = completion_tokens = 0
         started = time.perf_counter()
         attempts = 0
-        text, model, finish = "", self.cfg.model, ""
+        text, model, finish, response_id, fingerprint = "", self.cfg.model, "", "", ""
         while attempts <= self.cfg.retries_on_blank:
             attempts += 1
             resp: Any = self._client.chat.completions.create(**kwargs)
             choice = resp.choices[0]
             text = choice.message.content or ""
             model, finish = str(resp.model), str(choice.finish_reason)
+            response_id = str(getattr(resp, "id", "") or "")
+            fingerprint = str(getattr(resp, "system_fingerprint", "") or "")
             if resp.usage is not None:
                 prompt_tokens += int(resp.usage.prompt_tokens)
                 completion_tokens += int(resp.usage.completion_tokens)
@@ -92,4 +96,6 @@ class OpenAICompatibleClient:
             seconds=time.perf_counter() - started,
             finish_reason=finish,
             attempts=attempts,
+            response_id=response_id,
+            system_fingerprint=fingerprint,
         )
