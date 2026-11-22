@@ -272,7 +272,7 @@ operations:
     name: Установка рам и стоек с домкратами
     family: monolithic_floor
     kind: work
-    requires: [wall_platform.removed, wall_concrete.strength_load, wall_formwork.removed]
+    requires: [wall_concrete.strength_load, wall_formwork.removed]
     produces: [slab_supports.installed]
     zone: slab
     schedule_row: 15
@@ -281,7 +281,7 @@ operations:
     name: Укладка продольных и поперечных балок, палубы; выверка отметок домкратами
     family: monolithic_floor
     kind: work
-    requires: [slab_supports.installed]
+    requires: [slab_supports.installed, wall_platform.removed]
     produces: [slab_form.installed]
     zone: slab
     schedule_row: 16
