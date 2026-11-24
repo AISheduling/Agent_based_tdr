@@ -17,6 +17,9 @@ build/
 # data and experiment stores
 data/*
 !data/README.md
+# корпус шаблонов (эталон): маленький текстовый, хранится в репозитории
+!data/sources.yaml
+!data/families/
 mlflow.db
 mlruns/
 mlartifacts/
